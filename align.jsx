@@ -39,13 +39,27 @@ function main(){
 
 function setDefaults(){
     makeDefaults();
+    var initialBounds;
     for(i = 0; i < doc.selection.length; i++){
+        if(i == doc.selection.length-1){
+            initialBounds = lastTextFrame.geometricBounds;
+            var y0 = initialBounds[0];
+            var x0 = initialBounds[1];
+            var y1 = initialBounds[2];
+            var x1 = initialBounds[3];
+            var initialWidth = x1 - x0;
+            var initialHeight = y1 - y0;
+            lastTextFrame.fit(FitOptions.FRAME_TO_CONTENT);
+        }
         var paragraphs = doc.selection[i].paragraphs;
         if(paragraphs != undefined){
             for(j = 0; j < paragraphs.length; j++){
                 paragraphs.item(j).applyParagraphStyle(style, false);
             }
-        } 
+        }
+        if(i == doc.selection.length-1){
+            lastTextFrame.geometricBounds = initialBounds;
+        }
     }
     doc.paragraphStyles[doc.paragraphStyles.length-1].remove();
     return;
@@ -62,9 +76,11 @@ function setColor(){
                 } else {
                     paragraphs.item(j).applyCharacterStyle(notFinalStyle, false);
                 }
+                paragraphs.item(j).lines.item(paragraphs.item(j).lines.length - 1).hyphenateLastWord = false;
             }
         } 
     }
+    return;
 }
 
 function makeDefaults(){
@@ -74,6 +90,7 @@ function makeDefaults(){
     style.appliedFont = app.fonts.item("Times New Roman");
     style.alignToBaseline = true;
     style.pointSize = 10;
+    style.firstLineIndent = "1p0";
     style.justification = Justification.LEFT_JUSTIFIED;
     
     /* 
@@ -111,21 +128,25 @@ function makeDefaults(){
         notFinalColor.name = "Not Final Copy";
     }
     notFinalStyle.fillColor = notFinalColor;
+    return;
 }
 
 function removeEmptyLines(){
-    for(i = 0; i < doc.selection.length; i++){
-        var paragraphs = doc.selection[i].paragraphs;
-        if(paragraphs != undefined){
-            for(j = 0; j < paragraphs.length; j++){
-                for(k = 0; k < paragraphs.item(j).lines.length; k++){
-                    if(paragraphs.item(j).lines.item(k).length == 1){
-                        paragraphs.item(j).lines.item(k).remove();
+    if(confirm("Remove empty lines? If you want to keep blank lines or there aren't any blank lines click no.", "Remove Empty Lines?")){
+        for(i = 0; i < doc.selection.length; i++){
+            var paragraphs = doc.selection[i].paragraphs;
+            if(paragraphs != undefined){
+                for(j = 0; j < paragraphs.length; j++){
+                    for(k = 0; k < paragraphs.item(j).lines.length; k++){
+                        if(paragraphs.item(j).lines.item(k).words.length == 0){
+                            paragraphs.item(j).lines.item(k).remove();                       
+                        }
                     }
                 }
-            }
-        } 
+            } 
+        }
     }
+    return;
 }
 
 function fixOverflow(){
@@ -198,6 +219,9 @@ function isOverflowing(){
 }
 
 function hasExtraSpace(){
+    if(isOverflowing()){
+        return false;
+    }
     var initialBounds = lastTextFrame.geometricBounds;
     var y0 = initialBounds[0];
     var x0 = initialBounds[1];
