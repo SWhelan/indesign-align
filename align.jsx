@@ -1,10 +1,7 @@
 ﻿main();
+
 function main(){
     doc = app.activeDocument;
-    //number of characters on a line that I am subjectively calling short
-    shortLineThreshold = 13;
-    //how far the height of the text box can change before its decided to be enough extra space for a line
-    extraSpaceThreshold = 1.5;
     if(doc.selection[0] == undefined){
         alert("Please select at least one text frame.");
         return;
@@ -101,6 +98,11 @@ function makeDefaults(){
     style.keepLastLines = 2;
     style.keepFirstLines = 2;
 
+    //number of characters on a line that make a subjectively short line
+    shortLineThreshold = 13;
+    //how far the height of the text box can change before its decided to be about enough extra space for a line
+    extraSpaceThreshold = 1.5;
+    
     /*
      * As copy text is often not ready in time for design. Set the text color to red if 
      * the text is not final copy.
@@ -137,9 +139,11 @@ function removeEmptyLines(){
             var paragraphs = doc.selection[i].paragraphs;
             if(paragraphs != undefined){
                 for(j = 0; j < paragraphs.length; j++){
-                    for(k = 0; k < paragraphs.item(j).lines.length; k++){
-                        if(paragraphs.item(j).lines.item(k).words.length == 0){
-                            paragraphs.item(j).lines.item(k).remove();                       
+                    if(paragraphs.item(j) != null){
+                        for(k = 0; k < paragraphs.item(j).lines.length; k++){
+                            if(paragraphs.item(j).lines.item(k).words.length == 0){
+                                paragraphs.item(j).lines.item(k).remove();                       
+                            }
                         }
                     }
                 }
